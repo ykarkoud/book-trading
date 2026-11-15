@@ -4,8 +4,9 @@ Walking skeleton for a web platform where registered users exchange books.
 Stack: Node.js (LTS) + Express 5 + Nunjucks templates, i18next (German/English),
 Knex with SQLite (development/tests) or MySQL/MariaDB (production).
 
-This is only the foundation: a health URL, a German/English start page with the
-basic layout, a minimal database layer and demo data for previews.
+So far it has a health URL, a German/English start page with the basic
+layout, a database layer, demo data for previews and customer accounts
+(register, log in, log out).
 
 ## Prerequisites
 
@@ -66,20 +67,57 @@ preview (`.ai-dev/run.toml`) sets both on purpose; production must set neither.
 ```
 src/server.js    start-up (DB init, demo seed, listen)
 src/app.js       Express app factory (routes)
+src/auth.js      accounts: register/login/logout, sessions, CSRF, scrypt
 src/db.js        Knex setup (SQLite / MySQL) and schema init
 src/seed.js      demo data (development/DEBUG only)
 src/i18n.js      German/English texts and language detection
-views/           Nunjucks templates (layout + start page)
+views/           Nunjucks templates (layout, start page, auth forms)
 public/          CSS (served under /static)
 tests/           Jest tests
 ```
 
+## Customer accounts
+
+Visitors can register, log in and log out (German and English pages; the
+navigation shows "Anmelden / Registrieren" or "Angemeldet als … · Abmelden").
+
+| Route | What it does |
+|---|---|
+| `GET /register`, `POST /register` | Create an account with email + password (min. 8 characters), then logged in |
+| `GET /login`, `POST /login` | Log in; a wrong password and an unknown email give the same message |
+| `POST /logout` | Ends the session (deleted in the database) and clears the cookie |
+
+How it works (`src/auth.js`):
+
+- **Passwords** are hashed with Node's built-in `crypto.scrypt` and a random
+  salt per user (format `scrypt$N$r$p$salt$hash`). The plain password is never
+  stored or logged. No native packages are needed.
+- **Sessions:** a random token in the `sid` cookie (httpOnly, SameSite=Lax,
+  `Secure` when `NODE_ENV=production`, 30 days). The `sessions` table stores
+  only the SHA-256 hash of the token. A new session is created on every login.
+- **CSRF protection:** a random token in the `csrf` cookie is repeated in a
+  hidden field of every form and checked on every POST.
+- **Database:** tables `users` (email stored lowercase and unique) and
+  `sessions`, created by `init(db)` in `src/db.js` for SQLite and MySQL.
+- No secret key is needed in code or environment.
+
+All cookies (`sid`, `csrf`, `lang`) are strictly necessary, so no consent
+banner is needed.
+
+Try it in the preview: open `/register`, create an account, log out, log in.
+With the default in-memory SQLite, accounts are lost when the app restarts;
+set `DATABASE_FILE` or use MySQL to keep them.
+
+Still missing for accounts: email verification and password reset (they come
+with the email/Nodemailer slice), and login rate limiting. **Before real users
+register, the legal pages (Impressum, Datenschutzerklärung) must be added** –
+that is the next slice.
+
 ## Not built yet (intentionally)
 
-Registration/login, book and topic lists, matching suggestions, image upload,
-email and the map. Their libraries (Passport, Multer, sharp, Nodemailer,
-Leaflet) will be added with those features. Legal pages (Impressum,
-Datenschutzerklärung) also follow with the first product workflow.
+Book and topic lists, matching suggestions, image upload, email and the map.
+Their libraries (Multer, sharp, Nodemailer, Leaflet) will be added with those
+features. Legal pages (Impressum, Datenschutzerklärung) follow next.
 
 ## Open questions for the owner
 

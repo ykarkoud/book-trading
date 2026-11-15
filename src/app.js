@@ -5,6 +5,7 @@ const express = require('express');
 const nunjucks = require('nunjucks');
 const { i18nMiddleware } = require('./i18n');
 const { shouldSeed } = require('./seed');
+const { createAuth } = require('./auth');
 
 const ROOT = path.join(__dirname, '..');
 
@@ -27,6 +28,8 @@ function createApp({ env = process.env, db } = {}) {
 
   app.use('/static', express.static(path.join(ROOT, 'public')));
   app.use(i18nMiddleware);
+  // Accounts (register/login/logout), CSRF and session lookup.
+  app.use(createAuth({ db, env }));
 
   app.get('/', async (req, res, next) => {
     try {
