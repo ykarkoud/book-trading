@@ -9,6 +9,18 @@
   <link rel="alternate" hreflang="en" href="/?lang=en">
   <link rel="alternate" hreflang="x-default" href="/">
   <link rel="stylesheet" href="/static/style.css">
+  <style>
+    /* Navigation with account links: wraps on small phones. */
+    nav { flex-wrap: wrap; gap: 0.25rem 0.75rem; }
+    .nav-user { color: var(--muted); font-size: 0.875rem; max-width: 100%; overflow-wrap: anywhere; }
+    .nav-form { margin: 0; display: inline-flex; }
+    .link-button {
+      font: inherit; color: var(--accent); background: none; border: 0; cursor: pointer;
+      text-decoration: underline; padding: 0.5rem 0.25rem; min-height: 44px;
+    }
+    .nav-cta { border: 1px solid var(--accent); border-radius: 0.25rem; padding: 0.25rem 0.75rem !important; text-decoration: none; }
+  </style>
+  {% block head %}{% endblock %}
 </head>
 <body>
   <header class="site-header">
@@ -16,6 +28,16 @@
       <a class="brand" href="/?lang={{ lang }}">{{ t('appName') }}</a>
       <nav aria-label="{{ t('navMain') }}">
         <a href="/?lang={{ lang }}">{{ t('navHome') }}</a>
+        {% if user %}
+        <span class="nav-user">{{ t('loggedInAs') }} <strong>{{ user.email }}</strong></span>
+        <form class="nav-form" method="post" action="/logout?lang={{ lang }}">
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+          <button type="submit" class="link-button">{{ t('navLogout') }}</button>
+        </form>
+        {% else %}
+        <a href="/login?lang={{ lang }}">{{ t('navLogin') }}</a>
+        <a class="nav-cta" href="/register?lang={{ lang }}">{{ t('navRegister') }}</a>
+        {% endif %}
         <a class="lang-switch" href="?lang={{ altLang }}" hreflang="{{ altLang }}" lang="{{ altLang }}"
            aria-label="{{ t('languageLabel') }}: {{ t('switchTo') }}">{{ altLang | upper }}</a>
       </nav>
