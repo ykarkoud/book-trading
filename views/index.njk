@@ -1,0 +1,22 @@
+{% extends "layout.njk" %}
+
+{% block content %}
+<section class="hero">
+  <h1>{{ t('appName') }}</h1>
+  <p class="tagline">{{ t('tagline') }}</p>
+  <p>{{ t('intro') }}</p>
+  <p class="notice">{{ t('comingSoon') }}</p>
+</section>
+
+{% if demo %}
+<section class="demo" id="demo-data">
+  <h2>{{ t('demoHeading') }}</h2>
+  <p class="muted">{{ t('demoNote') }}</p>
+  <ul class="book-list">
+    {% for book in books %}
+    <li><strong>{{ book.title }}</strong> <span class="muted">{{ t('by') }} {{ book.author }}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

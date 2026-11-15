@@ -1,0 +1,16 @@
+kind = "web"
+runtime = "node"
+install = "npm install"
+start = "node src/server.js"   # listens on 0.0.0.0:$PORT
+port = 8000
+health = "/health/"
+ready_timeout_seconds = 60
+
+[env]
+# Preview only: shows demo data. Production must set neither of these.
+NODE_ENV = "development"
+DEBUG = "1"
+
+[preview]
+paths = ["/", "/?lang=en"]
+seed = ""
